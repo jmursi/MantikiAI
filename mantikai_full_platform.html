@@ -1,0 +1,751 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1F3864;--blue:#2E75B6;--light:#D6E4F0;--green:#27a06a;--amber:#c47c0a;--red:#c0392b;--rad:10px}
+body{font-family:var(--font-sans,'Arial',sans-serif);background:transparent;color:var(--color-text-primary)}
+
+.app{width:100%;min-height:600px;display:flex;flex-direction:column;gap:0}
+.topbar{background:var(--navy);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:var(--rad) var(--rad) 0 0}
+.logo{font-size:18px;font-weight:500;letter-spacing:.5px}
+.logo span{color:#7ab8e8;font-size:13px;margin-left:8px;font-weight:400}
+.nav{display:flex;gap:4px}
+.nav button{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.8);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .2s}
+.nav button.active,.nav button:hover{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.5)}
+
+.content{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-top:none;border-radius:0 0 var(--rad) var(--rad);padding:20px;min-height:520px}
+
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric{background:var(--color-background-secondary);border-radius:8px;padding:14px 16px;text-align:center}
+.metric-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.metric-val{font-size:26px;font-weight:500;line-height:1}
+.metric-val.green{color:var(--green)}
+.metric-val.blue{color:var(--blue)}
+.metric-val.amber{color:var(--amber)}
+.metric-val.red{color:var(--red)}
+
+.progress-section{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:16px}
+.card-title{font-size:13px;font-weight:500;margin-bottom:12px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.4px}
+
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{font-size:12px;color:var(--color-text-secondary);width:130px;flex-shrink:0}
+.bar-track{flex:1;background:var(--color-background-secondary);border-radius:4px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.bar-pct{font-size:12px;color:var(--color-text-secondary);width:32px;text-align:right;flex-shrink:0}
+
+.alert-list{display:flex;flex-direction:column;gap:8px}
+.alert-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-size:13px}
+.alert-item.warn{background:#fef9ec;border:0.5px solid #f5d769;color:#7a5c00}
+.alert-item.good{background:#edf7f2;border:0.5px solid #82d4ae;color:#1a6640}
+.alert-item.info{background:#e8f1fb;border:0.5px solid #7ab8e8;color:#0c3f75}
+html.dark .alert-item.warn{background:#3a2e00;border-color:#7a5c00;color:#f5d769}
+html.dark .alert-item.good{background:#0a2e1a;border-color:#1a6640;color:#82d4ae}
+html.dark .alert-item.info{background:#071e3d;border-color:#0c3f75;color:#7ab8e8}
+
+/* ── PROOF COACH ── */
+.proof-layout{display:grid;grid-template-columns:1fr 1.2fr;gap:16px}
+.problem-box{background:var(--color-background-secondary);border-radius:8px;padding:16px;font-size:13px;line-height:1.6}
+.problem-box .tag{display:inline-block;background:var(--light);color:#0c3f75;font-size:11px;padding:2px 8px;border-radius:4px;margin-bottom:8px;font-weight:500}
+html.dark .problem-box .tag{background:#071e3d;color:#7ab8e8}
+.problem-box .stmt{font-size:14px;font-weight:500;margin-bottom:8px;line-height:1.5}
+.problem-box .hint{font-size:12px;color:var(--color-text-secondary)}
+
+.proof-stage{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:16px}
+.stage-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.stage-num{width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.stage-title{font-size:14px;font-weight:500}
+.socratic-q{background:var(--light);border-left:3px solid var(--blue);padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px;line-height:1.5;margin-bottom:12px;color:#0c3f75}
+html.dark .socratic-q{background:#071e3d;color:#7ab8e8}
+.proof-input{width:100%;border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:10px;font-size:13px;font-family:inherit;background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:72px}
+.proof-input:focus{outline:none;border-color:var(--blue)}
+.feedback-box{border-radius:6px;padding:10px 14px;font-size:13px;line-height:1.5;margin-top:10px;display:none}
+.feedback-box.show{display:block}
+.feedback-box.good{background:#edf7f2;border:0.5px solid #82d4ae;color:#1a6640}
+.feedback-box.partial{background:#fef9ec;border:0.5px solid #f5d769;color:#7a5c00}
+html.dark .feedback-box.good{background:#0a2e1a;border-color:#1a6640;color:#82d4ae}
+html.dark .feedback-box.partial{background:#3a2e00;border-color:#7a5c00;color:#f5d769}
+.stage-nav{display:flex;gap:8px;margin-top:12px;align-items:center}
+.stage-dots{display:flex;gap:5px;margin-left:auto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);transition:all .2s}
+.dot.active{background:var(--blue);border-color:var(--blue)}
+.dot.done{background:var(--green);border-color:var(--green)}
+
+/* ── PROBLEM GENERATOR ── */
+.gen-controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.gen-controls select{border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;background:var(--color-background-primary);color:var(--color-text-primary)}
+.gen-controls select:focus{outline:none;border-color:var(--blue)}
+.problem-card{border:0.5px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.problem-card-top{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.problem-card-top .topic-badge{font-size:11px;background:rgba(255,255,255,.15);padding:2px 8px;border-radius:4px}
+.problem-card-top .context-badge{font-size:11px;color:rgba(255,255,255,.7)}
+.problem-card-body{padding:16px}
+.problem-text{font-size:14px;line-height:1.7;margin-bottom:14px}
+.problem-parts{display:flex;flex-direction:column;gap:8px}
+.part{display:flex;gap:10px;font-size:13px;line-height:1.5}
+.part-letter{font-weight:500;color:var(--blue);flex-shrink:0;width:18px}
+.solution-toggle{font-size:12px;color:var(--blue);cursor:pointer;text-decoration:underline;margin-top:10px;display:inline-block}
+.solution-box{background:var(--color-background-secondary);border-radius:6px;padding:12px;font-size:13px;line-height:1.6;margin-top:8px;display:none}
+.solution-box.show{display:block}
+.cs-link{background:var(--light);border-radius:6px;padding:8px 12px;font-size:12px;margin-top:10px;color:#0c3f75;border-left:3px solid var(--blue)}
+html.dark .cs-link{background:#071e3d;color:#7ab8e8}
+
+/* ── DIAGNOSTIC ── */
+.diag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.week-pills{display:flex;gap:6px}
+.week-pill{padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);transition:all .2s;font-family:inherit}
+.week-pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.radar-wrap{display:flex;flex-direction:column;align-items:center}
+.radar-title{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;font-weight:500}
+.legend{display:flex;gap:14px;font-size:12px;margin-top:8px}
+.legend-item{display:flex;align-items:center;gap:5px;color:var(--color-text-secondary)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.risk-table{width:100%;border-collapse:collapse;font-size:13px}
+.risk-table th{text-align:left;padding:6px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-weight:500}
+.risk-table td{padding:8px 8px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+.risk-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.risk-high{background:#fde8e8;color:#8b1a1a}
+.risk-med{background:#fef9ec;color:#7a5c00}
+.risk-low{background:#edf7f2;color:#1a6640}
+html.dark .risk-high{background:#3d0a0a;color:#f09595}
+html.dark .risk-med{background:#3a2e00;color:#f5d769}
+html.dark .risk-low{background:#0a2e1a;color:#82d4ae}
+.sparkline{display:inline-block;width:60px;height:20px;vertical-align:middle}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 16px;border-radius:6px;font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.btn:hover{background:var(--color-background-tertiary)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.primary:hover{background:#1a5a96}
+.btn.sm{padding:4px 10px;font-size:12px}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">MantikiAI <span>Discrete Mathematics Reasoning Platform</span></div>
+    <div class="nav">
+      <button class="active" onclick="showPanel('dashboard',this)"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</button>
+      <button onclick="showPanel('proof',this)"><i class="ti ti-brain" aria-hidden="true"></i> Proof Coach</button>
+      <button onclick="showPanel('generator',this)"><i class="ti ti-map-pin" aria-hidden="true"></i> Problem Generator</button>
+      <button onclick="showPanel('diagnostic',this)"><i class="ti ti-chart-radar" aria-hidden="true"></i> Diagnostic</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="panel active" id="panel-dashboard">
+      <div style="font-size:15px;font-weight:500;margin-bottom:16px">Cohort Overview — Discrete Mathematics, Semester 1 2026/2027</div>
+      <div class="dash-grid">
+        <div class="metric"><div class="metric-label">Enrolled</div><div class="metric-val blue">148</div></div>
+        <div class="metric"><div class="metric-label">Avg Reasoning Score</div><div class="metric-val amber">54%</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px">↑ 12pts from Week 1</div></div>
+        <div class="metric"><div class="metric-label">Proof Sessions</div><div class="metric-val green">1,204</div></div>
+        <div class="metric"><div class="metric-label">At-Risk Students</div><div class="metric-val red">23</div></div>
+      </div>
+
+      <div class="progress-section">
+        <div class="card">
+          <div class="card-title">Reasoning by Topic — Week 6 Diagnostic</div>
+          <div class="bar-row"><span class="bar-label">Propositional logic</span><div class="bar-track"><div class="bar-fill" style="width:71%;background:#2E75B6"></div></div><span class="bar-pct">71%</span></div>
+          <div class="bar-row"><span class="bar-label">Quantifiers (∀, ∃)</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:#c47c0a"></div></div><span class="bar-pct">38%</span></div>
+          <div class="bar-row"><span class="bar-label">Direct proof</span><div class="bar-track"><div class="bar-fill" style="width:52%;background:#2E75B6"></div></div><span class="bar-pct">52%</span></div>
+          <div class="bar-row"><span class="bar-label">Proof by induction</span><div class="bar-track"><div class="bar-fill" style="width:29%;background:#c0392b"></div></div><span class="bar-pct">29%</span></div>
+          <div class="bar-row"><span class="bar-label">Graph theory</span><div class="bar-track"><div class="bar-fill" style="width:61%;background:#27a06a"></div></div><span class="bar-pct">61%</span></div>
+          <div class="bar-row"><span class="bar-label">Combinatorics</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:#2E75B6"></div></div><span class="bar-pct">45%</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Lecturer Alerts — This Week</div>
+          <div class="alert-list">
+            <div class="alert-item warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i> 61% of students struggled with proof by induction (Week 6 submission). Recommend dedicating 20 mins next lecture to the base case step.</div>
+            <div class="alert-item warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Quantifier negation (¬∀ vs ∃¬) is the #1 error in Proof Coach sessions this week (312 errors logged).</div>
+            <div class="alert-item info"><i class="ti ti-info-circle" aria-hidden="true"></i> 23 students have not engaged with MantikiAI in 7+ days. Recommend outreach before Week 7 CAT.</div>
+            <div class="alert-item good"><i class="ti ti-check" aria-hidden="true"></i> Graph theory performance is strong. Nairobi matatu context problems have 87% completion rate — highest of any topic.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="card" style="cursor:pointer" onclick="showPanel('proof',document.querySelectorAll('.nav button')[1])">
+          <div style="font-size:28px;color:var(--blue);margin-bottom:8px"><i class="ti ti-brain" aria-hidden="true"></i></div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px">Proof Coach</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">Socratic scaffolding for proof construction — direct, contradiction, induction.</div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="showPanel('generator',document.querySelectorAll('.nav button')[2])">
+          <div style="font-size:28px;color:var(--green);margin-bottom:8px"><i class="ti ti-map-pin" aria-hidden="true"></i></div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px">Kenya Problem Generator</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">Fresh contextualised problems — M-Pesa, matatus, Safaricom, elections.</div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="showPanel('diagnostic',document.querySelectorAll('.nav button')[3])">
+          <div style="font-size:28px;color:var(--amber);margin-bottom:8px"><i class="ti ti-chart-radar" aria-hidden="true"></i></div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:4px">Reasoning Diagnostic</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">Track logical reasoning development across Weeks 1, 6, and 12.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROOF COACH ══ -->
+    <div class="panel" id="panel-proof">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:500">Proof Coach — Socratic Reasoning Scaffolding</div>
+        <div style="display:flex;gap:8px">
+          <select id="proof-select" onchange="loadProof()" style="border:0.5px solid var(--color-border-secondary);border-radius:6px;padding:5px 10px;font-size:12px;font-family:inherit;background:var(--color-background-primary);color:var(--color-text-primary)">
+            <option value="0">Proof by induction — Summation</option>
+            <option value="1">Direct proof — Even numbers</option>
+            <option value="2">Proof by contradiction — Infinitely many primes</option>
+          </select>
+        </div>
+      </div>
+      <div class="proof-layout">
+        <div>
+          <div class="problem-box">
+            <div class="tag" id="proof-tag">Mathematical Induction</div>
+            <div class="problem-box stmt" id="proof-stmt"></div>
+            <div class="problem-box hint" id="proof-hint"></div>
+          </div>
+          <div style="margin-top:12px;background:var(--color-background-secondary);border-radius:8px;padding:12px">
+            <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Your progress</div>
+            <div style="display:flex;gap:6px" id="stage-progress"></div>
+          </div>
+          <div id="proof-complete-msg" style="display:none;background:#edf7f2;border:0.5px solid #82d4ae;border-radius:8px;padding:14px;margin-top:12px;font-size:13px;color:#1a6640;line-height:1.5">
+            <strong>Well done!</strong> You have successfully worked through all stages of this proof. You demonstrated understanding of the base case, inductive hypothesis, and inductive step — the three pillars of mathematical induction. Try a more advanced problem or switch techniques using the selector above.
+          </div>
+        </div>
+        <div class="proof-stage">
+          <div class="stage-header">
+            <div class="stage-num" id="stage-num">1</div>
+            <div class="stage-title" id="stage-title"></div>
+          </div>
+          <div class="socratic-q" id="socratic-q"></div>
+          <textarea class="proof-input" id="proof-input" placeholder="Write your reasoning here..."></textarea>
+          <div class="feedback-box" id="feedback-box"></div>
+          <div class="stage-nav">
+            <button class="btn sm" onclick="checkAnswer()">Check my reasoning</button>
+            <button class="btn sm primary" id="next-btn" onclick="nextStage()" style="display:none">Next stage →</button>
+            <div class="stage-dots" id="stage-dots"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROBLEM GENERATOR ══ -->
+    <div class="panel" id="panel-generator">
+      <div style="font-size:15px;font-weight:500;margin-bottom:14px">Kenya Problem Generator — Contextualised Discrete Mathematics</div>
+      <div class="gen-controls">
+        <select id="topic-sel" onchange="generateProblem()">
+          <option value="graph">Graph Theory</option>
+          <option value="logic">Logic & Predicates</option>
+          <option value="combinatorics">Combinatorics</option>
+          <option value="sets">Sets & Relations</option>
+          <option value="induction">Recursion & Induction</option>
+        </select>
+        <select id="context-sel" onchange="generateProblem()">
+          <option value="matatu">Nairobi matatu network</option>
+          <option value="mpesa">M-Pesa transactions</option>
+          <option value="safaricom">Safaricom mobile network</option>
+          <option value="election">Kenya election system</option>
+          <option value="chama">Chama savings groups</option>
+        </select>
+        <select id="diff-sel" onchange="generateProblem()">
+          <option value="1">Level 1 — Introductory</option>
+          <option value="2">Level 2 — Intermediate</option>
+          <option value="3">Level 3 — Advanced</option>
+        </select>
+        <button class="btn primary" onclick="generateProblem()"><i class="ti ti-refresh" aria-hidden="true"></i> Generate new</button>
+      </div>
+      <div id="gen-output"></div>
+    </div>
+
+    <!-- ══ DIAGNOSTIC ══ -->
+    <div class="panel" id="panel-diagnostic">
+      <div class="diag-header">
+        <div style="font-size:15px;font-weight:500">Reasoning Diagnostic — Cohort Progression</div>
+        <div class="week-pills">
+          <button class="week-pill active" onclick="showWeek(1,this)">Week 1</button>
+          <button class="week-pill" onclick="showWeek(6,this)">Week 6</button>
+          <button class="week-pill" onclick="showWeek(12,this)">Week 12 (proj.)</button>
+        </div>
+      </div>
+      <div class="diag-grid">
+        <div class="radar-wrap">
+          <div class="radar-title">Reasoning Profile</div>
+          <canvas id="radar-canvas" width="260" height="220"></canvas>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2E75B6"></div>This week</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(46,117,182,.25)"></div>Week 1 baseline</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">At-Risk Student Tracker</div>
+          <table class="risk-table">
+            <thead><tr><th>Student ID</th><th>Risk level</th><th>Weakest area</th><th>Trend</th></tr></thead>
+            <tbody id="risk-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Cohort Reasoning Score — Semester Trajectory</div>
+        <canvas id="traj-canvas" width="600" height="120"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(id==='diagnostic') setTimeout(drawDiagnostic,50);
+  if(id==='proof') loadProof();
+  if(id==='generator') generateProblem();
+}
+
+// ══ PROOF COACH ══
+const proofs = [
+  {
+    tag:'Mathematical Induction', technique:'Proof by Induction',
+    stmt:'Prove by mathematical induction that for all n ≥ 1:\n\n1 + 2 + 3 + ... + n = n(n+1)/2',
+    hint:'Hint: This is the sum of the first n positive integers. Think about what happens when n = 1, then assume it works for n = k and prove it for n = k+1.',
+    stages:[
+      {title:'Understand the claim',q:'Before writing anything formal: in plain English, what is this statement actually saying? What happens when n = 1? Does the formula hold?',
+       good:['n=1','first','base','sum of first','1(2)/2','equals 1'],partial:['n','sum']},
+      {title:'State the Base Case',q:'Write the base case formally. Show that the formula holds for n = 1. What is the left-hand side? What is the right-hand side? Do they match?',
+       good:['lhs','rhs','1(2)/2','=1','base case','n=1'],partial:['left','right','1']},
+      {title:'State the Inductive Hypothesis',q:'Assume the statement holds for some arbitrary integer n = k (where k ≥ 1). Write this assumption precisely in mathematical notation.',
+       good:['k(k+1)/2','assume','hypothesis','k ≥ 1','for k','inductive hypothesis'],partial:['k','assume','suppose']},
+      {title:'Prove the Inductive Step',q:'Now prove that if it holds for n = k, it must hold for n = k+1. Start from the left-hand side for n = k+1 and use your inductive hypothesis.',
+       good:['k+1','(k+1)(k+2)/2','k(k+1)/2 + (k+1)','factor','factoring'],partial:['k+1','add']},
+      {title:'Write the Conclusion',q:'You have shown the base case and the inductive step. Write a clear, one-sentence conclusion that ties the proof together.',
+       good:['therefore','all n','proved','by induction','for all','∀'],partial:['proved','true']}
+    ]
+  },
+  {
+    tag:'Direct Proof', technique:'Direct Proof',
+    stmt:'Prove that the sum of any two even integers is even.',
+    hint:'Hint: Use the definition of even integers. An integer n is even if n = 2k for some integer k.',
+    stages:[
+      {title:'Define your terms',q:'What is the formal definition of an even integer? Write it precisely using mathematical notation.',
+       good:['2k','2m','2n','integer','definition','n=2k'],partial:['divisible','2','multiple']},
+      {title:'Set up the proof',q:'Let the two even integers be called a and b. Using the definition, how would you express each of them?',
+       good:['a=2k','b=2m','a=2j','b=2l','let a','let b'],partial:['a','b','express']},
+      {title:'Perform the algebra',q:'Now compute a + b. What do you get? Can you factor your expression?',
+       good:['2k+2m','2(k+m)','factor','2j','sum'],partial:['add','a+b']},
+      {title:'State the conclusion',q:'What does your factored expression tell you about a + b? Connect it back to the definition of an even integer.',
+       good:['even','2(k+m)','definition','integer','therefore','proved'],partial:['even','so']}
+    ]
+  },
+  {
+    tag:'Proof by Contradiction', technique:'Proof by Contradiction',
+    stmt:'Prove that there are infinitely many prime numbers.',
+    hint:'Hint: Assume the opposite — that there are only finitely many primes. List them as p₁, p₂, ..., pₙ. Then consider the number N = p₁ × p₂ × ... × pₙ + 1.',
+    stages:[
+      {title:'Negate the statement',q:'What is the negation of "there are infinitely many primes"? State this assumption clearly — this is where your proof by contradiction begins.',
+       good:['finitely many','finite','assume','contradiction','suppose','only finitely'],partial:['finite','assume']},
+      {title:'Construct N',q:'List all primes as p₁, p₂, ..., pₙ. Define N = p₁ × p₂ × ... × pₙ + 1. What can you say about whether N is prime or composite?',
+       good:['N','prime','composite','either','p1 * p2','product','+ 1'],partial:['N','prime','composite']},
+      {title:'Derive the contradiction',q:'Consider any prime pᵢ from your list. What is the remainder when N is divided by pᵢ? What does this mean?',
+       good:['remainder 1','not divisible','no prime','divides N','contradiction','pᵢ does not'],partial:['remainder','divide']},
+      {title:'Conclude',q:'You have reached a contradiction. What exactly was contradicted? Write the final conclusion of your proof.',
+       good:['contradicts','assumption','infinitely','therefore','infinite primes','proved'],partial:['contradiction','proved']}
+    ]
+  }
+];
+let curProof=0, curStage=0;
+
+function loadProof(){
+  curProof=parseInt(document.getElementById('proof-select').value);
+  curStage=0;
+  const p=proofs[curProof];
+  document.getElementById('proof-tag').textContent=p.tag;
+  document.getElementById('proof-stmt').textContent=p.stmt;
+  document.getElementById('proof-hint').textContent=p.hint;
+  document.getElementById('proof-complete-msg').style.display='none';
+  document.getElementById('proof-input').value='';
+  renderStage();
+}
+
+function renderStage(){
+  const p=proofs[curProof];
+  const s=p.stages[curStage];
+  document.getElementById('stage-num').textContent=curStage+1;
+  document.getElementById('stage-title').textContent=s.title;
+  document.getElementById('socratic-q').textContent=s.q;
+  document.getElementById('proof-input').value='';
+  const fb=document.getElementById('feedback-box');
+  fb.className='feedback-box'; fb.textContent='';
+  document.getElementById('next-btn').style.display='none';
+  const dots=document.getElementById('stage-dots');
+  dots.innerHTML=p.stages.map((_,i)=>`<div class="dot ${i<curStage?'done':i===curStage?'active':''}"></div>`).join('');
+  const prog=document.getElementById('stage-progress');
+  prog.innerHTML=p.stages.map((st,i)=>`<div style="flex:1;height:6px;border-radius:3px;background:${i<curStage?'var(--green)':i===curStage?'var(--blue)':'var(--color-background-secondary)'};transition:background .3s" title="Stage ${i+1}: ${st.title}"></div>`).join('');
+}
+
+function checkAnswer(){
+  const p=proofs[curProof];
+  const s=p.stages[curStage];
+  const ans=document.getElementById('proof-input').value.toLowerCase();
+  const fb=document.getElementById('feedback-box');
+  const goodHits=s.good.filter(k=>ans.includes(k.toLowerCase())).length;
+  const partHits=s.partial.filter(k=>ans.includes(k.toLowerCase())).length;
+  if(ans.trim().length<10){
+    fb.className='feedback-box show partial';
+    fb.textContent='Your response is too short. Try to write at least a sentence explaining your reasoning — the goal is to demonstrate your thinking, not just a symbol or number.';
+    document.getElementById('next-btn').style.display='none';
+    return;
+  }
+  if(goodHits>=2){
+    fb.className='feedback-box show good';
+    const msgs=[
+      'Good reasoning! You have captured the key idea. You can now move to the next stage.',
+      'Correct — you have identified the essential point here. Well done. Proceed to the next stage.',
+      'That is right. Your reasoning shows understanding of this step. Move on when ready.'
+    ];
+    fb.textContent=msgs[curStage%3];
+    document.getElementById('next-btn').style.display='inline-block';
+  } else if(partHits>=1 || ans.length>30){
+    fb.className='feedback-box show partial';
+    const hints=[
+      'You are on the right track, but your explanation needs more precision. Re-read the question and think about what mathematical language you could use to make your answer more rigorous.',
+      'There is something correct in what you have written, but a key element is missing. Look again at the statement — what specific mathematical object or relationship are you being asked to identify or construct?',
+      'You have started well. Push further — can you write this more formally? What notation or definition should you invoke here?'
+    ];
+    fb.textContent=hints[Math.floor(Math.random()*3)];
+    document.getElementById('next-btn').style.display='none';
+  } else {
+    fb.className='feedback-box show partial';
+    fb.textContent='This does not yet address the question. Re-read it carefully. What is being asked? What mathematical concept is central here? Try again with that in mind.';
+    document.getElementById('next-btn').style.display='none';
+  }
+}
+
+function nextStage(){
+  const p=proofs[curProof];
+  if(curStage<p.stages.length-1){curStage++;renderStage();}
+  else{
+    document.getElementById('proof-complete-msg').style.display='block';
+    document.querySelector('.proof-stage').style.opacity='.4';
+    document.querySelector('.proof-stage').style.pointerEvents='none';
+  }
+}
+
+// ══ PROBLEM GENERATOR ══
+const problems = {
+  graph:{
+    matatu:{
+      1:{text:'The Nairobi matatu network in a small district has the following routes connecting stages: Route 19 connects Westlands, Pangani, and Kencom. Route 23 connects Kencom, Githurai, and Ruiru. Route 46 connects Westlands, Upperhill, and Kencom.\n\nRepresent this network as a graph where stages are vertices and routes are edges.',
+         parts:['List all vertices (stages) in the graph.','List all edges (routes). How many edges are there?','What is the degree of Kencom? What does this tell you about this stage?'],
+         solution:'Vertices: {Westlands, Pangani, Kencom, Githurai, Ruiru, Upperhill} — 6 vertices.\nEdges: {Westlands-Pangani, Pangani-Kencom, Kencom-Githurai, Githurai-Ruiru, Westlands-Upperhill, Upperhill-Kencom} — 6 edges.\ndeg(Kencom) = 3 (connected to Pangani, Githurai, Upperhill). A degree of 3 means Kencom is a hub — 3 different routes pass through it. In network terms, it has high centrality.',
+         cs:'Connection to CS: Graph representations are used in Google Maps, route optimisation, and network topology mapping — all fundamental to software engineering.'},
+      2:{text:'A matatu company operates 8 routes across Nairobi. The routes form a graph G where stages are vertices. The adjacency matrix for part of the network is given below.\n\nA passenger wants to travel from Stage A to Stage F. Using your knowledge of graph connectivity, determine the shortest path (fewest stages) if edges exist: A-B, A-C, B-D, C-D, D-E, C-F, E-F.',
+         parts:['Draw the graph and identify all simple paths from A to F.','Find the shortest path using BFS logic. Show your working.','What is the eccentricity of vertex D? Is D a centre of this graph?'],
+         solution:'Simple paths A to F: A→C→F (length 2), A→C→D→E→F (length 4), A→B→D→E→F (length 4), A→B→D→C→F (length 4).\nShortest: A→C→F with 2 edges.\nEccentricity of D = max distance from D to any vertex = dist(D,A)=2, dist(D,F)=2. e(D)=2.\nRadius = min eccentricity. D is a central vertex.',
+         cs:'Connection to CS: BFS (Breadth-First Search) is the algorithm powering shortest-path in social networks, GPS routing, and network packet delivery.'}
+    },
+    mpesa:{
+      1:{text:'Model an M-Pesa transaction flow as a directed graph. In one day, person A sends money to B and C. B sends to D. C sends to D and E. D sends to E.\n\nVertices represent people. A directed edge (u,v) means u sent money to v.',
+         parts:['List all directed edges in this transaction graph.','Find the in-degree and out-degree of each vertex.','Identify any vertex with in-degree = 0. What does this mean in the context of M-Pesa transactions?'],
+         solution:'Edges: (A,B),(A,C),(B,D),(C,D),(C,E),(D,E).\nDegrees: A: in=0, out=2 | B: in=1, out=1 | C: in=1, out=2 | D: in=2, out=1 | E: in=2, out=0.\nin-degree=0: vertex A. This means A only sent money and received none — A is a pure sender (possibly a salary payer or business).\nout-degree=0: vertex E. E only received money.',
+         cs:'Connection to CS: Directed graphs model transaction networks, web hyperlinks (PageRank), and dependency graphs in software build systems.'}
+    }
+  },
+  logic:{
+    mpesa:{
+      1:{text:'M-Pesa applies the following rules to determine if a transaction is approved:\n\nLet p = "account is verified", q = "daily limit not exceeded", r = "recipient exists".\n\nA transaction is approved if and only if: p ∧ q ∧ r.',
+         parts:['Construct the full truth table for p ∧ q ∧ r with all 8 rows.','In how many of the 8 cases is the transaction approved?','A user is verified and the recipient exists, but the daily limit is exceeded. Is the transaction approved? Which row of your truth table covers this case?'],
+         solution:'Truth table for p∧q∧r: Only row (T,T,T) gives TRUE.\n1 out of 8 cases results in approval.\nFor p=T, q=F, r=T: p∧q∧r = T∧F∧T = FALSE. Transaction is rejected. This is row 6 of the standard truth table ordering.',
+         cs:'Connection to CS: Boolean logic is the foundation of all conditional branching in code. Every `if` statement in Python, Java, or C is an application of propositional logic.'},
+      2:{text:'M-Pesa fraud detection uses the following predicate logic rule:\n\n∀ transactions t: [amount(t) > 150000 ∧ ¬verified(sender(t))] → flag(t)\n\nThis means: for every transaction, if the amount exceeds KES 150,000 AND the sender is unverified, then flag it.',
+         parts:['Translate this predicate into plain English.','Give an example of a transaction that would be flagged. Give one that would NOT be flagged.','What is the negation of the consequent flag(t)? Write the full contrapositive of the implication.'],
+         solution:'Plain English: Every transaction over KES 150,000 from an unverified sender must be flagged for review.\nFlagged: t1 where amount=200,000 and sender not verified → flagged.\nNot flagged: t2 where amount=50,000 (below threshold) — condition fails, so not necessarily flagged.\nContrapositive: ¬flag(t) → ¬(amount(t)>150000 ∧ ¬verified(sender(t))) ≡ amount(t)≤150000 ∨ verified(sender(t)).',
+         cs:'Connection to CS: Predicate logic forms the basis of database query languages (SQL WHERE clauses), formal verification, and automated theorem proving.'}
+    },
+    election:{
+      1:{text:'Kenya\'s electoral rules can be expressed using predicates. Let W(c) = "candidate c wins a constituency". A party wins a majority if it wins more than half the constituencies.\n\nLet there be 290 constituencies. Define: Majority(p) ≡ |{c : wins(p,c)}| > 145.',
+         parts:['Express in predicate logic: "No candidate wins a constituency with zero votes."','Express: "Every constituency has exactly one winner."','Write the negation of Majority(p) in simplified form.'],
+         solution:'(a) ∀c ∀candidate x: [W(x,c) → votes(x,c) > 0]\n(b) ∀c ∃!x: W(x,c) — the ∃! quantifier means "there exists exactly one"\n(c) ¬Majority(p) ≡ |{c : wins(p,c)}| ≤ 145. The party wins at most 145 constituencies.',
+         cs:'Connection to CS: These quantifiers are the basis of formal specification languages used in software correctness — tools like TLA+, Alloy, and Coq use exactly this notation.'}
+    }
+  },
+  combinatorics:{
+    safaricom:{
+      1:{text:'Safaricom assigns M-Pesa PINs to customers. A PIN consists of exactly 4 digits, where each digit is from 0–9.\n\nSafaricom\'s security policy states that a PIN must not consist of the same digit repeated four times (e.g., 1111 is not allowed).',
+         parts:['How many total 4-digit PINs are possible (including repeated digits)?','How many PINs consist of the same digit repeated 4 times?','How many valid PINs satisfy Safaricom\'s policy? Show your working.'],
+         solution:'(a) 10⁴ = 10,000 total PINs (with repetition allowed, 10 choices per digit).\n(b) 10 PINs of form dddd: {0000,1111,2222,...,9999}.\n(c) Valid PINs = 10,000 − 10 = 9,990.\nThis uses the complementary counting principle: |valid| = |total| − |invalid|.',
+         cs:'Connection to CS: Combinatorics is the mathematics behind password security, cryptographic key generation, and hash collision probability analysis in cybersecurity.'},
+      2:{text:'Safaricom offers mobile data bundles in three sizes (Daily, Weekly, Monthly) and four price tiers (KES 20, 50, 100, 200). A customer selects one size and one tier.\n\nAdditionally, the customer can optionally add a voice call add-on (yes or no) and an SMS bundle (yes or no).',
+         parts:['How many base bundle options exist (size × tier)?','Including the optional add-ons, how many total packages can a customer choose?','If a promotion limits the KES 20 tier to Daily bundles only, how many total valid packages remain?'],
+         solution:'(a) 3 × 4 = 12 base options.\n(b) 12 × 2 × 2 = 48 total packages (multiply by 2 for each binary add-on choice).\n(c) Removed combinations: KES 20 is no longer available with Weekly and Monthly (2 removed base options). New base = 12 − 2 = 10. Total packages = 10 × 4 = 40.',
+         cs:'Connection to CS: Combinatorics underpins algorithm complexity analysis (how many inputs does a sorting algorithm process?) and test case generation in software testing.'}
+    },
+    election:{
+      1:{text:'In a Kenyan county, there are 5 candidates running for 3 county assembly seats. Each voter selects exactly 3 candidates (order does not matter).',
+         parts:['How many different ways can a voter fill their ballot?','If one particular candidate (say Candidate A) must be on every winning ballot, how many combinations include A?','The electoral commission decides to allow ranked voting (order matters). How does the count change?'],
+         solution:'(a) C(5,3) = 10 ways.\n(b) If A is fixed, choose 2 more from remaining 4: C(4,2) = 6 combinations.\n(c) With order mattering: P(5,3) = 5!/(5-3)! = 60 ordered selections.',
+         cs:'Connection to CS: Combinatorics powers recommendation systems (how many subsets of items to suggest?), cryptographic protocols, and NP-complete problems like the subset sum problem.'}
+    }
+  },
+  sets:{
+    matatu:{
+      1:{text:'Define these sets for Nairobi matatu passengers surveyed on a Monday:\n\nA = {passengers who used Route 19}\nB = {passengers who used Route 23}\nC = {passengers who used Route 46}\n\nFrom 200 passengers surveyed: |A|=90, |B|=80, |C|=75, |A∩B|=30, |A∩C|=25, |B∩C|=20, |A∩B∩C|=10.',
+         parts:['Use inclusion-exclusion to find |A∪B∪C|.','How many passengers used exactly one route?','How many passengers used none of the three routes?'],
+         solution:'(a) |A∪B∪C| = 90+80+75−30−25−20+10 = 180.\n(b) Exactly one: |A only|+|B only|+|C only| = (90−30−25+10)+(80−30−20+10)+(75−25−20+10) = 45+40+40 = 125.\n(c) Used none = 200 − 180 = 20 passengers.',
+         cs:'Connection to CS: Set operations are the mathematical foundation of SQL database joins, Python set objects, and data deduplication algorithms.'}
+    },
+    chama:{
+      1:{text:'A Chama savings group has 20 members. Define:\n\nS = {members who contribute weekly}\nT = {members who have taken a loan this year}\n\n|S| = 14, |T| = 8, |S∩T| = 5.',
+         parts:['Find |S∪T| — how many members either contribute weekly or have taken a loan (or both)?','Find |S−T| — members who contribute weekly but have NOT taken a loan.','A new rule requires that all loan takers must contribute weekly. Express this as a set relationship and state whether the current data satisfies it.'],
+         solution:'(a) |S∪T| = |S|+|T|−|S∩T| = 14+8−5 = 17.\n(b) |S−T| = |S|−|S∩T| = 14−5 = 9 members.\n(c) The rule requires T ⊆ S (every loan taker must be a weekly contributor). Currently |T|=8 and |S∩T|=5, so 3 loan takers are not in S. The rule is NOT satisfied.',
+         cs:'Connection to CS: Set relationships model database integrity constraints, access control lists, and class hierarchies in object-oriented programming.'}
+    }
+  },
+  induction:{
+    chama:{
+      1:{text:'A Chama group starts with 1 member. Each month, every existing member recruits exactly 1 new member. Let a(n) denote the number of members after n months.\n\na(0) = 1, a(1) = 2, a(2) = 4, a(3) = 8.',
+         parts:['Write a closed-form formula for a(n). Verify it for n = 0, 1, 2, 3.','Prove by mathematical induction that a(n) = 2ⁿ for all n ≥ 0.','How many months until the Chama has more than 1,000 members? Use logarithms to solve.'],
+         solution:'(a) a(n) = 2ⁿ. Verify: a(0)=1✓, a(1)=2✓, a(2)=4✓, a(3)=8✓.\n(b) Base: a(0)=2⁰=1 ✓. Hyp: assume a(k)=2ᵏ. Step: a(k+1)=2·a(k)=2·2ᵏ=2ᵏ⁺¹ ✓. By induction, a(n)=2ⁿ for all n≥0.\n(c) 2ⁿ > 1000 → n > log₂(1000) ≈ 9.97. So after n = 10 months, the Chama has 1,024 members.',
+         cs:'Connection to CS: Geometric sequences model exponential algorithm complexity (O(2ⁿ)), binary trees (2ⁿ leaves at depth n), and viral network growth analysis.'},
+      2:{text:'A Chama offers a monthly savings challenge. In month 1, a member saves KES 100. In month 2, KES 200. In month n, KES 100n.\n\nLet S(n) be total savings after n months: S(n) = 100(1 + 2 + ... + n) = 100 · n(n+1)/2.',
+         parts:['Verify S(4) using both the sum and the formula.','Prove S(n) = 50n(n+1) by mathematical induction.','After how many complete months will total savings first exceed KES 10,000?'],
+         solution:'(a) S(4)=100(1+2+3+4)=100×10=1000. Formula: 50×4×5=1000 ✓.\n(b) Base n=1: S(1)=100=50×1×2=100 ✓. Hyp: S(k)=50k(k+1). Step: S(k+1)=S(k)+100(k+1)=50k(k+1)+100(k+1)=(k+1)(50k+100)=50(k+1)(k+2) ✓.\n(c) 50n(n+1)>10000 → n(n+1)>200. n=14: 14×15=210>200. After 14 months.',
+         cs:'Connection to CS: Arithmetic sums appear in analysis of loops (how many iterations does a nested loop execute?) and database query optimization.'}
+    }
+  }
+};
+
+function generateProblem(){
+  const topic=document.getElementById('topic-sel').value;
+  const ctx=document.getElementById('context-sel').value;
+  const diff=parseInt(document.getElementById('diff-sel').value);
+  const out=document.getElementById('gen-output');
+
+  const ctxNames={matatu:'Nairobi matatu network',mpesa:'M-Pesa transactions',safaricom:'Safaricom mobile network',election:'Kenya election system',chama:'Chama savings groups'};
+  const topicNames={graph:'Graph Theory',logic:'Logic & Predicates',combinatorics:'Combinatorics',sets:'Sets & Relations',induction:'Recursion & Induction'};
+
+  let prob = null;
+  if(problems[topic] && problems[topic][ctx] && problems[topic][ctx][diff]) {
+    prob = problems[topic][ctx][diff];
+  } else {
+    const availCtx = Object.keys(problems[topic] || {});
+    const fallCtx = availCtx[0];
+    if(fallCtx && problems[topic][fallCtx]) {
+      const diffs = Object.keys(problems[topic][fallCtx]);
+      prob = problems[topic][fallCtx][diffs[0]];
+    }
+  }
+
+  if(!prob){
+    out.innerHTML=`<div class="card" style="padding:20px;text-align:center;color:var(--color-text-secondary)"><i class="ti ti-refresh" style="font-size:32px;display:block;margin:0 auto 8px"></i>Switch the topic or context selector — this combination is being developed. Try Graph Theory + Nairobi matatu, Logic + M-Pesa, or Combinatorics + Safaricom.</div>`;
+    return;
+  }
+
+  out.innerHTML=`
+  <div class="problem-card">
+    <div class="problem-card-top">
+      <div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:3px">${topicNames[topic]}</div>
+        <div class="context-badge">Context: ${ctxNames[ctx]} · Level ${diff}</div>
+      </div>
+      <div class="topic-badge">Discrete Mathematics</div>
+    </div>
+    <div class="problem-card-body">
+      <div class="problem-text">${prob.text.replace(/\n/g,'<br>')}</div>
+      <div class="problem-parts">
+        ${prob.parts.map((p,i)=>`<div class="part"><span class="part-letter">(${String.fromCharCode(97+i)})</span><span>${p}</span></div>`).join('')}
+      </div>
+      <span class="solution-toggle" onclick="toggleSolution(this)">Show model solution ▸</span>
+      <div class="solution-box">
+        <strong style="font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--color-text-secondary)">Model Solution</strong>
+        <div style="margin-top:8px">${prob.solution.replace(/\n/g,'<br>')}</div>
+      </div>
+      <div class="cs-link"><strong>🔗 CS Application:</strong> ${prob.cs}</div>
+    </div>
+  </div>`;
+}
+
+function toggleSolution(el){
+  const box=el.nextElementSibling;
+  if(box.classList.contains('show')){box.classList.remove('show');el.textContent='Show model solution ▸';}
+  else{box.classList.add('show');el.textContent='Hide solution ▾';}
+}
+
+// ══ DIAGNOSTIC ══
+const weekData = {
+  1:{scores:[32,28,41,35,29,38],labels:['Propositional logic','Quantifiers','Direct proof','Induction','Graph reasoning','Counting'],risk:[
+    {id:'S-047',risk:'high',area:'Quantifiers',trend:[22,20,19]},
+    {id:'S-083',risk:'high',area:'Induction',trend:[31,28,30]},
+    {id:'S-112',risk:'high',area:'All areas',trend:[18,21,20]},
+    {id:'S-019',risk:'med',area:'Proof writing',trend:[35,34,36]},
+    {id:'S-155',risk:'med',area:'Quantifiers',trend:[38,37,40]}
+  ]},
+  6:{scores:[58,38,52,29,61,45],labels:['Propositional logic','Quantifiers','Direct proof','Induction','Graph reasoning','Counting'],risk:[
+    {id:'S-047',risk:'high',area:'Quantifiers',trend:[22,30,35]},
+    {id:'S-083',risk:'high',area:'Induction',trend:[31,28,27]},
+    {id:'S-019',risk:'med',area:'Proof writing',trend:[35,42,48]},
+    {id:'S-155',risk:'low',area:'Improving',trend:[38,45,52]}
+  ]},
+  12:{scores:[72,61,68,54,79,63],labels:['Propositional logic','Quantifiers','Direct proof','Induction','Graph reasoning','Counting'],risk:[
+    {id:'S-083',risk:'high',area:'Induction',trend:[31,28,33]},
+    {id:'S-047',risk:'med',area:'Quantifiers',trend:[22,30,44]},
+    {id:'S-019',risk:'low',area:'Steady improvement',trend:[35,42,57]}
+  ]}
+};
+let curWeek=1;
+
+function showWeek(w,btn){
+  curWeek=w;
+  document.querySelectorAll('.week-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  drawDiagnostic();
+}
+
+function drawDiagnostic(){
+  drawRadar();
+  drawTrajectory();
+  renderRiskTable();
+}
+
+function drawRadar(){
+  const canvas=document.getElementById('radar-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2-5,R=80;
+  const data=weekData[curWeek];
+  const baseline=weekData[1];
+  const n=data.scores.length;
+  const isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const gridCol=isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.08)';
+  const textCol=isDark?'#9c9a92':'#73726c';
+  const mainCol='#2E75B6';
+  const baseCol='rgba(46,117,182,.2)';
+
+  for(let ring=1;ring<=4;ring++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const a=i*(2*Math.PI/n)-Math.PI/2;
+      const r=R*ring/4;
+      const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=gridCol;ctx.lineWidth=0.5;ctx.stroke();
+  }
+  for(let i=0;i<n;i++){
+    const a=i*(2*Math.PI/n)-Math.PI/2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle=gridCol;ctx.lineWidth=0.5;ctx.stroke();
+  }
+
+  function plotPoly(scores,fillC,strokeC,lw){
+    ctx.beginPath();
+    scores.forEach((s,i)=>{
+      const a=i*(2*Math.PI/n)-Math.PI/2;
+      const r=R*(s/100);
+      const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.fillStyle=fillC;ctx.fill();
+    ctx.strokeStyle=strokeC;ctx.lineWidth=lw;ctx.stroke();
+  }
+
+  plotPoly(baseline.scores,'rgba(46,117,182,.12)','rgba(46,117,182,.3)',1);
+  plotPoly(data.scores,'rgba(46,117,182,.25)',mainCol,2);
+
+  data.labels.forEach((label,i)=>{
+    const a=i*(2*Math.PI/n)-Math.PI/2;
+    const lx=cx+(R+22)*Math.cos(a),ly=cy+(R+22)*Math.sin(a);
+    ctx.fillStyle=textCol;ctx.font='10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(label.length>12?label.substring(0,11)+'…':label,lx,ly);
+  });
+
+  data.scores.forEach((s,i)=>{
+    const a=i*(2*Math.PI/n)-Math.PI/2;
+    const r=R*(s/100);
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle=mainCol;ctx.fill();
+  });
+}
+
+function drawTrajectory(){
+  const canvas=document.getElementById('traj-canvas');
+  if(!canvas)return;
+  canvas.width=560;canvas.height=120;
+  const ctx=canvas.getContext('2d');
+  const isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const textCol=isDark?'#9c9a92':'#73726c';
+  const lineCol='#2E75B6';
+  const W=canvas.width,H=canvas.height,pad=30;
+  ctx.clearRect(0,0,W,H);
+  const weeks=[1,2,3,4,5,6,7,8,9,10,11,12];
+  const scores=[42,44,46,47,49,54,57,59,61,64,66,72];
+  const proj=curWeek===12;
+
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.08)':'rgba(0,0,0,.06)';ctx.lineWidth=0.5;
+  [25,50,75,100].forEach(v=>{
+    const y=H-pad-(v/100)*(H-pad*2);
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();
+    ctx.fillStyle=textCol;ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText(v+'%',pad-4,y+3);
+  });
+
+  const xScale=(W-pad*2)/(weeks.length-1);
+  ctx.beginPath();
+  scores.forEach((s,i)=>{
+    const x=pad+i*xScale,y=H-pad-(s/100)*(H-pad*2);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle=lineCol;ctx.lineWidth=2;ctx.stroke();
+
+  if(proj){
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    const lastX=pad+(scores.length-1)*xScale,lastY=H-pad-(scores[scores.length-1]/100)*(H-pad*2);
+    ctx.moveTo(lastX,lastY);
+    ctx.lineTo(lastX+xScale*2,H-pad-(0.78*(H-pad*2)));
+    ctx.strokeStyle='rgba(46,117,182,.4)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  const wk=curWeek<=12?curWeek-1:11;
+  const hx=pad+wk*xScale,hy=H-pad-(scores[wk]/100)*(H-pad*2);
+  ctx.beginPath();ctx.arc(hx,hy,5,0,Math.PI*2);
+  ctx.fillStyle=lineCol;ctx.fill();
+  ctx.fillStyle=textCol;ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Week '+curWeek+': '+scores[wk]+'%',hx,hy-12);
+}
+
+function renderRiskTable(){
+  const tbody=document.getElementById('risk-tbody');
+  const data=weekData[curWeek];
+  tbody.innerHTML=data.risk.map(r=>{
+    const badge=r.risk==='high'?'risk-high':r.risk==='med'?'risk-med':'risk-low';
+    const label=r.risk==='high'?'High':r.risk==='med'?'Medium':'Low';
+    const spark=drawSparkline(r.trend);
+    return `<tr>
+      <td style="font-weight:500">${r.id}</td>
+      <td><span class="risk-badge ${badge}">${label}</span></td>
+      <td style="color:var(--color-text-secondary)">${r.area}</td>
+      <td>${spark}</td>
+    </tr>`;
+  }).join('');
+}
+
+function drawSparkline(data){
+  const w=60,h=20,pad=2;
+  const mn=Math.min(...data),mx=Math.max(...data),range=mx-mn||1;
+  const pts=data.map((v,i)=>`${pad+i*(w-pad*2)/(data.length-1)},${h-pad-(v-mn)/range*(h-pad*2)}`).join(' ');
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#2E75B6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${pad+(data.length-1)*(w-pad*2)/(data.length-1)}" cy="${h-pad-(data[data.length-1]-mn)/range*(h-pad*2)}" r="2.5" fill="#2E75B6"/></svg>`;
+}
+
+loadProof();
+generateProblem();
+setTimeout(drawDiagnostic,100);
+</script>
